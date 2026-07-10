@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Node.js
+node_modules/
+.next/
+out/
+
+# Ambiente - NUNCA versionar
+.env
+.env.local
+.env.*.local
+
+# Banco de dados
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+backend/logs/
+
+# Uploads e backups (runtime)
+backend/uploads/
+backend/backups/
+uploads/
+backups/
+
+# PIDs (runtime)
+.pids/
+*.pid
+
+# Editores
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Segurança
+*.pem
+*.key
+*.crt
+secrets/

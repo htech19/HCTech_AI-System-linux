@@ -1,0 +1,28 @@
+# =============================================================================
+# HC Tech AI System — Ollama Override
+# Só necessário se o serviço padrão do ollama não for instalado.
+# Caso ollama.service já exista, use: systemctl enable --now ollama
+# =============================================================================
+
+[Unit]
+Description=Ollama — Local AI (HC Tech)
+Documentation=https://ollama.com
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ollama serve
+
+Restart=on-failure
+RestartSec=5
+
+Environment=OLLAMA_HOST=127.0.0.1
+Environment=OLLAMA_ORIGINS=http://localhost:3000,http://localhost:8000
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hctech-ollama
+
+[Install]
+WantedBy=default.target

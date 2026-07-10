@@ -1,0 +1,27 @@
+# =============================================================================
+# HC Tech AI System — Frontend Service (Next.js)
+# =============================================================================
+
+[Unit]
+Description=HC Tech AI System — Frontend (Next.js)
+Documentation=https://github.com/htech19/HCTech_AI-System
+After=hctech-backend.service
+Requires=hctech-backend.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/HCTech_AI-System/frontend
+ExecStart=/usr/bin/npm run dev
+
+Restart=on-failure
+RestartSec=10
+
+Environment=NODE_ENV=development
+Environment=NEXT_TELEMETRY_DISABLED=1
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hctech-frontend
+
+[Install]
+WantedBy=default.target
