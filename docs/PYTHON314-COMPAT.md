@@ -1,0 +1,150 @@
+Documentação Técnica — Resolução de Ambiente Python
+Projeto: HCTech AI System Linux — Backend
+Contexto
+
+O backend do projeto usa FastAPI + SQLAlchemy + Pydantic rodando em CachyOS x86_64.
+
+O sistema tem Python 3.14 como padrão, que é uma versão bleeding-edge ainda não suportada por todas as bibliotecas.
+Problema Encontrado
+
+Ao tentar instalar as dependências com versões pinadas originais:
+
+text
+
+pydantic==2.9.2
+pydantic-settings==2.5.2
+
+O pip falhou ao compilar pydantic-core==2.23.4 porque essa versão usa PyO3 0.22.2, que suporta no máximo Python 3.13.
+Erro exato
+
+text
+
+error: the configured Python interpreter version (3.14) is newer than
+PyO3's maximum supported version (3.13)
+
+Causa Raiz
+Componente	Versão pinada antiga	Problema
+pydantic	2.9.2	Puxa pydantic-core 2.23.4
+pydantic-core	2.23.4	Usa PyO3 0.22.2
+PyO3	0.22.2	Suporta até Python 3.13
+Python do sistema	3.14	Incompatível com PyO3 0.22.2
+O Que Foi Tentado
+Tentativa 1 — Python 3.13 via pacman
+
+Bash
+
+sudo pacman -S python313
+# erro: alvo não encontrado: python313
+
+Resultado: Python 3.13 não está disponível no repositório do CachyOS no momento.
+Tentativa 2 — Script automatizado via fish
+
+fish
+
+cat > setup.sh << 'EOF'
+...
+EOF
+
+Resultado: Fish shell não suporta heredoc (<< 'EOF'). O arquivo foi criado vazio e o bash setup.sh não fez nada.
+Tentativa 3 — Atualizar pydantic (funcionou)
+
+Trocando os pins antigos por versões flexíveis:
+
+text
+
+pydantic>=2.10,<3
+pydantic-settings>=2.6,<3
+
+O pip resolveu automaticamente para:
+
+    pydantic 2.13.4
+    pydantic-core 2.46.4 — já com wheel pré-compilada para Python 3.14
+
+Resultado: instalação 100% bem-sucedida.
+Solução Final
+Pré-requisitos
+
+    Python 3.14 (padrão do sistema)
+    pip atualizado
+    venv limpa
+
+Comandos
+
+Bash
+
+cd ~/HCTech_AI-System-linux/backend
+python -m venv .venv
+source .venv/bin/activate.fish
+pip install --upgrade pip
+pip install \
+  "fastapi==0.115.0" \
+  "uvicorn[standard]==0.30.0" \
+  "sqlalchemy[asyncio]==2.0.35" \
+  "aiosqlite==0.20.0" \
+  "python-dotenv==1.0.1" \
+  "httpx==0.27.2" \
+  "loguru==0.7.2" \
+  "pydantic>=2.10,<3" \
+  "pydantic-settings>=2.6,<3" \
+  "apscheduler==3.10.4" \
+  "aiofiles==24.1.0" \
+  "python-multipart==0.0.9" \
+  "passlib[bcrypt]==1.7.4" \
+  "python-jose[cryptography]==3.3.0" \
+  "openai==1.45.0" \
+  "anthropic==0.34.2" \
+  "alembic==1.13.3"
+
+Verificação
+
+Bash
+
+python -c "import pydantic; print('Pydantic:', pydantic.__version__)"
+python -c "import fastapi; print('FastAPI:', fastapi.__version__)"
+python -c "import sqlalchemy; print('SQLAlchemy:', sqlalchemy.__version__)"
+
+Versões Finais Instaladas
+Pacote	Versão instalada
+Python	3.14
+pydantic	2.13.4
+pydantic-core	2.46.4
+pydantic-settings	2.14.2
+fastapi	0.115.0
+uvicorn	0.30.0
+sqlalchemy	2.0.35
+aiosqlite	0.20.0
+httpx	0.27.2
+openai	1.45.0
+anthropic	0.34.2
+alembic	1.13.3
+passlib	1.7.4
+python-jose	3.3.0
+apscheduler	3.10.4
+Regras Fixas Para Este Projeto
+
+text
+
+# NUNCA fixar pydantic abaixo de 2.10 neste ambiente
+# Python 3.14 exige pydantic-core >= 2.27 com wheel pré-compilada
+
+# CORRETO
+pydantic>=2.10,<3
+pydantic-settings>=2.6,<3
+
+# ERRADO — quebra no Python 3.14
+pydantic==2.9.2
+pydantic-settings==2.5.2
+
+Observações do Ambiente
+Item	Detalhe
+OS	CachyOS x86_64
+Shell	Fish 4.8.0
+Fish + heredoc	Não funciona — usar bash script.sh para scripts com <<EOF
+Python do sistema	3.14 (bleeding-edge)
+Python 3.13	Não disponível via pacman no momento
+Gerenciador de pacotes	pacman / pip dentro de venv
+venv ativa no fish	source .venv/bin/activate.fish
+Lição Principal
+
+    Ao usar Python bleeding-edge como 3.14, nunca pinar versões antigas de pacotes que compilam código Rust via PyO3. Sempre usar faixas flexíveis como >=2.10,<3 para permitir que o pip resolva para versões com wheels pré-compiladas compatíveis.
+
